@@ -1,0 +1,30 @@
+elasticsearch:
+
+  image: afup/elasticsearch:0.1
+
+  volumes_from: elasticsearch-data-volume
+
+  ports:
+   - ":9200"
+
+  expose:
+   - "9200"
+
+nginx:
+
+  build: /home/vagrant/symfony2-docker-vagrant/php-nginx
+
+  links:
+   - elasticsearch:symfony__elasticsearch_
+
+  ports:
+   - "8081:80"
+
+  expose:
+   - "80"
+
+  volumes:
+   - /home/vagrant/symfony2-docker-vagrant/php-nginx/conf/etc/nginx/sites-enabled:/etc/nginx/sites-enabled
+   - /home/vagrant/symfony2-docker-vagrant/php-nginx/conf:/conf
+   - /home/vagrant/symfony2-docker-vagrant/applications/composer:/.composer
+   - /home/vagrant/symfony2-docker-vagrant/applications/symfony2:/var/www/symfony2
