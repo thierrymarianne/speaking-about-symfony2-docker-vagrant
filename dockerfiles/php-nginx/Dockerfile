@@ -78,4 +78,4 @@ RUN apt-get install -y --force-yes openjdk-7-jre-lib openjdk-7-jre openjdk-7-jdk
 # Expose ports
 EXPOSE 80
 
-CMD /bin/bash -c 'source /build/dashboard.sh'
+CMD /bin/bash -c 'service php-nginx start'
