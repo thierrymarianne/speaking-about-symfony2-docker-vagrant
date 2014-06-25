@@ -43,12 +43,18 @@ Run the shell script as a privileged user (having permissions to access docker s
 
     sudo /bin/bash -c 'cd /vagrant/build/shell && source build.sh'
 
-### Testing your application and services are running
+### Testing your application and services are running from within the `symfony-standard` container
 
-    # Testing availability of Elasticsearch
+After entering your application container, your shell shall look like this
+
+    root@<CONTAINER_ID>:/#
+
+Test the availability of Elasticsearch
+
     curl -XGET 'http://'$SYMFONY__ELASTICSEARCH__PORT_9200_TCP_ADDR':9200
 
-    # Testing availability of Not Found page served by Symfony standard edition via nginx / php-fpm
+Test the availability of `Not Found` page served by Symfony standard edition via nginx / php-fpm
+
     curl -XGET http://127.0.0.1
 
 ## TODO
