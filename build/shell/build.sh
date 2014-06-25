@@ -1,125 +1,145 @@
 #!/bin/bash
 
-VERBOSE_INFO=1
-
-############
-# Base
-############
-
-# Install password generation tool
-apt-get install -f --force-yes pwgen
-
 COLOR_PREFIX='\033'
 
-GREEN=$COLOR_PREFIX'[31m'
+RED=$COLOR_PREFIX'[31m'
 BLUE=$COLOR_PREFIX'[36m'
-WHITE=$COLOR_PREFIX'[0m'
+BLACK=$COLOR_PREFIX'[0m'
 
 INFO=$BLUE'[INFO] '
+ERROR=$RED'[ERROR] '
 
-if [ $VERBOSE_INFO -gt 0 ]
-then
-    echo -e $INFO'About to stop running containers before removing them'$WHITE
-fi
+############
+# Copy resources to vagrant home directory in order to avoid issues related to
+# docker volumes mounted atop shared folders
+############
 
-SECTION=01-la-brute
-WORKING_DIR=/home/vagrant/package-app/$SECTION
-REPOSITORY=afup
+WORKING_DIR=/home/vagrant/package-app
+DOCK=$WORKING_DIR/dockerfiles
+OWNER=afup
 
 # Stop containers but toran container before removing them
-for CONTAINER_ID in `docker ps -a | grep "$REPOSITORY\|squid" | awk '{print $1}'`; do
-    docker stop $CONTAINER_ID && docker rm $CONTAINER_ID
+for CONTAINER_ID in `docker ps -a | grep "$OWNER\|squid" | awk '{print $1}'`; do
+    docker stop $CONTAINER_ID && docker rm $CONTAINER_ID &&
+        echo -e $INFO'Container of id '$CONTAINER_ID' has been stopped and removed.'$BLACK || \
+        echo -e $INFO'Container of id '$CONTAINER_ID' could not be stopped or removed.'$BLACK
 done;
 
-# Select application name
-if [[ -z "$1" ]];
+if [ ! -d $WORKING_DIR ];
 then
-    APP_NAME='symfony2'
-else
-    APP_NAME=$1
+    mkdir $WORKING_DIR &&
+        echo -e $INFO'Working directory has been created in home directory of vagrant user.'$BLACK || \
+        echo -e $ERROR'Working directory could not be created in home directory of vagrant user.'$BLACK
 fi
 
-DNS_ENTRIES=`cat /etc/resolv.conf`
-
-# Add DNS entries
-
-if [[ $(echo $DNS_ENTRIES | grep '8.8.8.8') ]]
+if [ ! -d $WORKING_DIR/build ];
 then
-	echo 'nameserver 8.8.8.8' >> /etc/resolv.conf
+    cp -R /vagrant/build $WORKING_DIR/build && \
+        echo -e $INFO'Build directory has been copied to working directory.'$BLACK || \
+        echo -e $ERROR'Build directory could not be copied to working directory.'$BLACK
 fi
 
-if [[ $(echo $DNS_ENTRIES | grep '8.8.4.4') ]]
+
+if [ ! -d $WORKING_DIR/applications ];
 then
-	echo 'nameserver 8.8.4.4' >> /etc/resolv.conf
+    mkdir $WORKING_DIR/applications &&
+        echo -e $INFO'Applications directory has been created in working directory.'$BLACK || \
+        echo -e $ERROR'Applications directory could not be created in working directory.'$BLACK
 fi
 
-cd $WORKING_DIR
+if [ ! -d $DOCK ];
+then
+    cp -R /vagrant/dockerfiles $DOCK && \
+        echo -e $INFO'Dockerfiles have been copied to working directory.'$BLACK || \
+        echo -e $ERROR'Dockerfiles could not be copied to working directory.'$BLACK
+fi
 
 ############
 # Elasticsearch
 ############
 
-if [ ! -d ../$SECTION/elasticsearch/var/lib/elasticsearch ]
+if [ ! -d $DOCK/elasticsearch/var/lib/elasticsearch ]
 then
-	mkdir -p ../$SECTION/elasticsearch/var/lib/elasticsearch
+	mkdir -p $DOCK/elasticsearch/var/lib/elasticsearch
 fi
 
 # Clean up
-rm -r ../$SECTION/elasticsearch/var/lib/elasticsearch/* -f
+rm -r $DOCK/elasticsearch/var/lib/elasticsearch/* -f
 
 # Set write permissions
-find ../$SECTION/elasticsearch/var/lib/elasticsearch -not -path . -exec chmod og+w {} \;
-find ../$SECTION/elasticsearch/var/lib/elasticsearch -not -path . -exec chown vagrant {} \;
+find $DOCK/elasticsearch/var/lib/elasticsearch -not -path . -exec chmod og+w {} \;
+find $DOCK/elasticsearch/var/lib/elasticsearch -not -path . -exec chown vagrant {} \;
 
-# Build Elasticsearch data volume container
-cd $WORKING_DIR/data;
-docker build -t $REPOSITORY/elasticsearch-data-volume:0.1 .
+# Build Elasticsearch data volume image
+cd $DOCK/data;
+docker build -t $OWNER/elasticsearch-data-volume:0.1 .
 
-# Build Elasticsearch server container
-cd $WORKING_DIR/elasticsearch;
-docker build -t $REPOSITORY/elasticsearch:0.1 .
+# Build Elasticsearch image
+cd $DOCK/elasticsearch;
+docker build -t $OWNER/elasticsearch:0.1 .
 
 # Run Elasticsearch data volume container
-cd $WORKING_DIR
+cd $DOCK
 docker run -d --name elasticsearch-data-volume \
 -p :22 \
 -v `pwd`/elasticsearch/var/lib/elasticsearch:/var/lib/elasticsearch \
-$REPOSITORY/elasticsearch-data-volume:0.1
+$OWNER/elasticsearch-data-volume:0.1
 
-# Run Elasticsearch server container in detached mode
-cd $WORKING_DIR
-docker run -d -p 9200:9200 \
+# Run Elasticsearch container in detached mode
+cd $DOCK/
+docker run -d -p :9200 \
 --name elasticsearch-server \
 --volumes-from elasticsearch-data-volume \
 -v `pwd`/elasticsearch/var/lib/elasticsearch:/var/lib/elasticsearch \
-$REPOSITORY/elasticsearch:0.1 || exit $?
+$OWNER/elasticsearch:0.1 && \
+    echo -e $INFO'Running Elasticsearch server'$BLACK || exit $?
 
-if [ $VERBOSE_INFO -gt 0 ]
+############
+# PHP FPM - nginx
+############
+
+#cd $DOCK/php-fpm-nginx
+#
+## Build PHP FPM and nginx image
+#docker build -t $OWNER/php-fpm-nginx:0.1 .
+#
+#docker push php-fpm-nginx:0.1
+
+############
+# Symfony standard edition
+############
+
+CONTAINER_NAME=symfony-standard
+IMAGE_NAME=$CONTAINER_NAME
+cd $DOCK/$CONTAINER_NAME
+
+# Build Symfony standard edition image
+docker build -t $OWNER/$IMAGE_NAME:0.1 .
+
+cd $DOCK
+
+# Symfony standard project will be created at runtime if none has been created yet
+APP_NAME='symfony-standard'
+WEB_DIR=`pwd`/../applications
+APP_DIR=$WEB_DIR/app
+
+if [ -d $APP_DIR/logs ];
 then
-	echo -e $INFO'Running Elasticsearch server'$WHITE
+    # Set logs and cache permissions
+    chmod go+wx $APP_DIR/logs
 fi
 
-############
-# PHP Nginx
-############
-
-cd $WORKING_DIR/php-nginx
-
-# Build php nginx container
-docker build -t $REPOSITORY/nginx:0.1 .
+if [ -d $APP_DIR/cache ];
+then
+    chmod go+wx $APP_DIR/cache
+fi
 
 # Run php-nginx container
-cd $WORKING_DIR
-
-PROJECT_DIR=`pwd`/applications/$APP_NAME
-APP_DIR=$PROJECT_DIR/app
-chmod go+wx $APP_DIR/logs
-chmod go+wx $APP_DIR/cache
-
 docker run -t -i -p 80:80 \
---name php-nginx-server \
+--name $CONTAINER_NAME \
 --link elasticsearch-server:symfony__elasticsearch_ \
--v $PROJECT_DIR:/var/www/$APP_NAME \
--v `pwd`/php-nginx/conf/etc/nginx/sites-enabled:/etc/nginx/sites-enabled \
--v `pwd`/php-nginx/conf:/conf \
-$REPOSITORY/nginx:0.1 || exit $?
+-v $WEB_DIR:/var/www \
+-v ~/composer:/.composer \
+-v `pwd`/$IMAGE_NAME/conf/etc/nginx/sites-enabled:/etc/nginx/sites-enabled \
+-v `pwd`/$IMAGE_NAME//conf:/conf \
+$OWNER/$IMAGE_NAME:0.1 || exit $?

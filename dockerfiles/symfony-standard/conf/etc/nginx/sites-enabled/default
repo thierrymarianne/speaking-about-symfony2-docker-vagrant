@@ -4,14 +4,14 @@ server {
     server_name localhost;
 
     location / {
-        root /var/www/symfony2/web;
+        root /var/www/symfony-standard/web;
         index  app.php;
         try_files $uri $uri/ /app.php?q=$uri&$args;
     }
 
     location ~ "^/(app|app_dev)\.php(/|$)" {
 
-        root /var/www/symfony2/web;
+        root /var/www/symfony-standard/web;
 
         fastcgi_split_path_info ^(.+\.php)(/.*)$;
         fastcgi_pass unix:/var/run/php5-fpm.sock;

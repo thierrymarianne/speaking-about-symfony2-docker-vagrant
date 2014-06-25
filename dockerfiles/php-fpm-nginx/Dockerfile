@@ -47,16 +47,10 @@ ADD ./php-nginx /etc/init.d/php-nginx
 RUN chmod +x /etc/init.d/php-nginx
 RUN update-rc.d php-nginx defaults
 
-# Install MySQL core client
-RUN apt-get install -y mysql-client-core-5.6
-
 # Install PHP and its extensions
 RUN apt-get install -y --force-yes php5-fpm php5-cli \
     php5-dev php-pear php5-mysql php5-json php5-mcrypt php5-gd php5-sqlite php5-curl \
     php5-intl php5-imagick php5-redis php5-apcu
-
-# Install nodes.js and npm
-RUN apt-get install -y --force-yes nodejs npm
 
 ##### START ##### build / testing requirements
 
@@ -69,9 +63,6 @@ RUN apt-get install -y --force-yes php5-xdebug
 # Increase xdebug max nesting level
 RUN echo "xdebug.max_nesting_level = 400" >> /etc/php5/cli/php.ini
 RUN echo "xdebug.max_nesting_level = 400" >> /etc/php5/fpm/php.ini
-
-# Install ant
-RUN apt-get install -y --force-yes openjdk-7-jre-lib openjdk-7-jre openjdk-7-jdk ant
 
 ##### END ##### build / testing requirements
 

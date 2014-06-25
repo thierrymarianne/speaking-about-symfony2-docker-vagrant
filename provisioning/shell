@@ -1,0 +1,85 @@
+#!/bin/bash
+
+# Install git, tmux and zsh
+if [ ! -e ~vagrant/dev-tools-installed ];
+then
+    echo 'update list of packages'
+
+    apt-get update
+    apt-get install -y --force-yes git tmux tig zsh && \
+        touch ~vagrant/dev-tools-installed
+fi
+
+# Install Oh-My-Zsh
+if [ ! -e ~vagrant/oh-my-zsh-installed ];
+then
+    echo 'install Oh My Zsh!'
+
+    curl -L http://install.ohmyz.sh | sh && \
+        chsh -s /bin/zsh && \
+        sudo -u vagrant chsh -s /bin/zsh && \
+        sudo -u vagrant /bin/bash -c 'curl -L http://install.ohmyz.sh | sh' && \
+           touch ~vagrant/oh-my-zsh-installed
+fi
+
+# Install Squid Debian Proxy
+if [ ! -e ~vagrant/squid-deb-proxy-installed ];
+then
+    echo 'install squid deb proxy'
+
+    sudo apt-get install squid-deb-proxy avahi-utils --force-yes -y &&
+        touch ~vagrant/squid-deb-proxy-installed
+fi
+
+# Add DNS entries
+DNS_ENTRIES=`cat /etc/resolv.conf`
+if [[ $(echo $DNS_ENTRIES | grep '8.8.8.8') ]];
+then
+    echo 'update DNS entries'
+
+	echo 'nameserver 8.8.8.8' >> /etc/resolv.conf &&
+    	echo 'nameserver 8.8.4.4' >> /etc/resolv.conf
+fi
+
+# Install Docker
+if [ ! -e ~vagrant/docker-installed ];
+then
+    echo 'update puppet'
+
+    release=`lsb_release -a 2> /dev/null | grep Codename | cut -f2`
+    package=puppetlabs-release-${release}.deb
+    cd /tmp; curl https://apt.puppetlabs.com/$package > $package
+    dpkg -i $package
+
+    echo -e "deb http://apt.puppetlabs.com/ trusty main\ndeb-src http://apt.puppetlabs.com/ trusty main" >> \
+    /etc/apt/sources.list.d/puppet.list
+    apt-key adv --keyserver keyserver.ubuntu.com --recv 4BD6EC30
+    apt-get update
+    apt-get install puppet
+
+    echo install docker
+    puppet module install garethr-docker && \
+        touch ~vagrant/docker-installed ;
+fi
+
+# Install Fig
+if [ ! -e ~vagrant/fig-installed ];
+then
+    echo 'install fig'
+
+    # Install python development libraries
+    sudo apt-get install python-dev -y --force-yes
+
+    # Install distribute
+    curl -O http://python-distribute.org/distribute_setup.py
+    sudo python distribute_setup.py
+
+    # Install pip
+    curl -O https://pypi.python.org/packages/source/p/pip/pip-1.3.1.tar.gz -k
+    tar xvfz pip-1.3.1.tar.gz
+    cd pip-1.3.1
+    sudo python setup.py install
+    cd .. && rm -rf pip-1.3.1
+    sudo pip install -U fig && \
+        touch ~vagrant/fig-installed
+fi
