@@ -57,6 +57,15 @@ Test the availability of `Not Found` page served by Symfony standard edition via
 
     curl -XGET http://127.0.0.1
 
+## Build and run containers using fig
+
+### Using vagrant    
+
+    # After having provisioned the same box used in the context of using the shell script above
+    vagrant ssh
+
+    sudo /bin/bash -c 'cd /vagrant/build/fig && fig up'
+
 ## FAQ
 
 **Provisioning with puppet might fail when the project directory can not be shared for some reason.**
@@ -70,14 +79,3 @@ Execute the following command whenever this error would be occurring
 
     vagrant reload --provision
 
-## TODO
-
-Run the following containers using fig
- * Elastisearch data volume,
- * Elastisearch,
- * Symfony standard edition
-
-### Run containers using fig
-
-    # /!\ fig relies on existing images so shell build shall be executed first)
-    cd build/fig && fig up

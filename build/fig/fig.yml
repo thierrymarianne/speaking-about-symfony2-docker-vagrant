@@ -1,6 +1,6 @@
 elasticsearch:
 
-  image: afup/elasticsearch:0.1
+  image: dockerfile/elasticsearch:latest 
 
   volumes_from: elasticsearch-data-volume
 
@@ -12,7 +12,9 @@ elasticsearch:
 
 nginx:
 
-  build: /home/vagrant/symfony2-docker-vagrant/php-nginx
+  build: /home/vagrant/package-app/dockerfiles/symfony-standard
+
+  command: /bin/bash -c ". /test/services.sh"
 
   links:
    - elasticsearch:symfony__elasticsearch_
@@ -24,7 +26,8 @@ nginx:
    - "80"
 
   volumes:
-   - /home/vagrant/symfony2-docker-vagrant/php-nginx/conf/etc/nginx/sites-enabled:/etc/nginx/sites-enabled
-   - /home/vagrant/symfony2-docker-vagrant/php-nginx/conf:/conf
-   - /home/vagrant/symfony2-docker-vagrant/applications/composer:/.composer
-   - /home/vagrant/symfony2-docker-vagrant/applications/symfony2:/var/www/symfony2
+   - /home/vagrant/package-app/dockerfiles/symfony-standard/conf/etc/nginx/sites-enabled:/etc/nginx/sites-enabled
+   - /home/vagrant/package-app/dockerfiles/symfony-standard/conf:/conf
+   - /home/vagrant/package-app/dockerfiles/applications/composer:/.composer
+   - /home/vagrant/package-app/dockerfiles/applications:/var/www
+   - /home/vagrant/package-app/build/fig/test:/test

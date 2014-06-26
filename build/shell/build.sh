@@ -118,7 +118,7 @@ IMAGE_NAME=$CONTAINER_NAME
 cd $DOCK/$CONTAINER_NAME
 
 # Build Symfony standard edition image
-build_symfony_standard='docker build -t '$OWNER'/'$IMAGE_NAME':0.1 .'
+build_symfony_standard='docker build --no-cache=true -t '$OWNER'/'$IMAGE_NAME':0.1.2 .'
 echo -e $INFO'Executing "'$build_symfony_standard'" from "'`pwd`'"'$BLACK
 /bin/bash -c "$build_symfony_standard"
 
@@ -154,4 +154,4 @@ docker run -t -i -p 80:80 \
 -v ~/composer:/.composer \
 -v `pwd`/$IMAGE_NAME/conf/etc/nginx/sites-enabled:/etc/nginx/sites-enabled \
 -v `pwd`/$IMAGE_NAME/conf:/conf \
-$OWNER/$IMAGE_NAME:0.1 || exit $?
+$OWNER/$IMAGE_NAME:0.1.2 || exit $?
