@@ -5,6 +5,9 @@ VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
+    # Make attempt to fix stdin: is not a tty
+    config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'"
+
     # Download Phusion base box
     config.vm.box = "phusion/ubuntu-14.04-amd64"
 
