@@ -62,7 +62,7 @@ fi
 # Elasticsearch
 ############
 
-if [ ! -d $DOCK/elasticsearch/var/lib/elasticsearch ]
+if [ ! -d $DOCK/elasticsearch/var/lib/elasticsearch ];
 then
 	mkdir -p $DOCK/elasticsearch/var/lib/elasticsearch
 fi
