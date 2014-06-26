@@ -23,7 +23,8 @@ then
 
     if [ ! -d ~vagrant/.oh-my-zsh ];
     then
-        sudo -u vagrant /bin/bash -c 'curl -L http://install.ohmyz.sh >> /tmp/install-omz'
+        /bin/bash -c 'curl -L http://install.ohmyz.sh >> /tmp/install-omz'
+        chown vagrant /tmp/install-omz
         cd ~vagrant && export ZSH=/home/vagrant/.oh-my-zsh && \
             sudo -E -u vagrant /bin/bash -c 'source /tmp/install-omz' || \
             chsh -s /bin/zsh vagrant && \
