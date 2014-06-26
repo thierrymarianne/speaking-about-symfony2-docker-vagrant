@@ -153,5 +153,5 @@ docker run -t -i -p 80:80 \
 -v $WEB_DIR:/var/www \
 -v ~/composer:/.composer \
 -v `pwd`/$IMAGE_NAME/conf/etc/nginx/sites-enabled:/etc/nginx/sites-enabled \
--v `pwd`/$IMAGE_NAME//conf:/conf \
+-v `pwd`/$IMAGE_NAME/conf:/conf \
 $OWNER/$IMAGE_NAME:0.1 || exit $?
