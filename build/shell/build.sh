@@ -119,7 +119,8 @@ cd $DOCK/$CONTAINER_NAME
 
 # Build Symfony standard edition image
 build_symfony_standard='docker build -t '$OWNER'/'$IMAGE_NAME':0.1 .'
-`$build_symfony_standard` && echo -e $INFO'Executed "'$build_symfony_standard'"'$BLACK
+echo -e $INFO'Executing "'$build_symfony_standard'" from "'`pwd`'"'$BLACK
+`$build_symfony_standard`
 
 cd $DOCK
 
