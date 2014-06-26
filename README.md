@@ -57,6 +57,19 @@ Test the availability of `Not Found` page served by Symfony standard edition via
 
     curl -XGET http://127.0.0.1
 
+## FAQ
+
+**Provisioning with puppet might fail when the project directory can not be shared for some reason.**
+
+    Shared folders that Puppet requires are missing on the virtual machine.
+    This is usually due to configuration changing after already booting the
+    machine. The fix is to run a `vagrant reload` so that the proper shared
+    folders will be prepared and mounted on the VM.
+
+Execute the following command whenever this error would be occurring
+
+    vagrant reload --provision
+
 ## TODO
 
 Run the following containers using fig
