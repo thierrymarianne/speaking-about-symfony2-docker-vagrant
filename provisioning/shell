@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Install git, tmux and zsh
+# Install git tmux and zsh
 if [ ! -e ~vagrant/dev-tools-installed ];
 then
     echo 'update list of packages'
@@ -15,14 +15,23 @@ if [ ! -e ~vagrant/oh-my-zsh-installed ];
 then
     echo 'install Oh My Zsh!'
 
-    curl -L http://install.ohmyz.sh | sh && \
-        chsh -s /bin/zsh && \
-        sudo -u vagrant chsh -s /bin/zsh && \
-        sudo -u vagrant /bin/bash -c 'curl -L http://install.ohmyz.sh | sh' && \
-           touch ~vagrant/oh-my-zsh-installed
+    if [ ! -d ~/.oh-my-zsh ];
+    then
+        /bin/bash -c 'curl -L http://install.ohmyz.sh >> /tmp/install-omz'
+        /bin/sh /tmp/install-omz
+    fi
+
+    if [ ! -d ~vagrant/.oh-my-zsh ];
+    then
+        sudo -u vagrant /bin/bash -c 'curl -L http://install.ohmyz.sh >> /tmp/install-omz'
+        cd ~vagrant && export ZSH=/home/vagrant/.oh-my-zsh && \
+            sudo -E -u vagrant /bin/bash -c 'source /tmp/install-omz' || \
+            chsh -s /bin/zsh vagrant && \
+            touch ~vagrant/oh-my-zsh-installed
+    fi
 fi
 
-# Install Squid Debian Proxy
+# install squid debian proxy
 if [ ! -e ~vagrant/squid-deb-proxy-installed ];
 then
     echo 'install squid deb proxy'
