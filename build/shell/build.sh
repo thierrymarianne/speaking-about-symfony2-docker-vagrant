@@ -10,11 +10,12 @@ INFO=$BLUE'[INFO] '
 ERROR=$RED'[ERROR] '
 
 ############
-# Copy resources to vagrant home directory in order to avoid issues related to
+# Copy resources to user home directory in order to avoid issues related to
 # docker volumes mounted atop shared folders
 ############
 
-WORKING_DIR=/home/vagrant/package-app
+HOME_DIR=~
+WORKING_DIR=$HOME_DIR/package-app
 DOCK=$WORKING_DIR/dockerfiles
 OWNER=afup
 
@@ -27,14 +28,17 @@ done;
 
 if [ ! -d $WORKING_DIR ];
 then
-    mkdir $WORKING_DIR &&
-        echo -e $INFO'Working directory has been created in home directory of vagrant user.'$BLACK || \
-        echo -e $ERROR'Working directory could not be created in home directory of vagrant user.'$BLACK
+    create_working_dir='mkdir '$WORKING_DIR
+    `$create_working_dir` &&
+        echo -e $INFO'Working directory has been created in home directory of current user.'$BLACK || \
+        echo -e $ERROR'Working directory could not be created in home directory of current user.'$BLACK
 fi
 
 if [ ! -d $WORKING_DIR/build ];
 then
-    cp -R /vagrant/build $WORKING_DIR/build && \
+    copy_build_dir='cp -R ../../build '$WORKING_DIR'/build'
+    echo -e $INFO'Executing "'$copy_build_dir'"'$BLACK
+    `$copy_build_dir` && \
         echo -e $INFO'Build directory has been copied to working directory.'$BLACK || \
         echo -e $ERROR'Build directory could not be copied to working directory.'$BLACK
 fi
@@ -49,7 +53,7 @@ fi
 
 if [ ! -d $DOCK ];
 then
-    cp -R /vagrant/dockerfiles $DOCK && \
+    cp -R ../../dockerfiles $DOCK && \
         echo -e $INFO'Dockerfiles have been copied to working directory.'$BLACK || \
         echo -e $ERROR'Dockerfiles could not be copied to working directory.'$BLACK
 fi
@@ -68,7 +72,7 @@ rm -r $DOCK/elasticsearch/var/lib/elasticsearch/* -f
 
 # Set write permissions
 find $DOCK/elasticsearch/var/lib/elasticsearch -not -path . -exec chmod og+w {} \;
-find $DOCK/elasticsearch/var/lib/elasticsearch -not -path . -exec chown vagrant {} \;
+find $DOCK/elasticsearch/var/lib/elasticsearch -not -path . -exec chown `whoami` {} \;
 
 # Build Elasticsearch data volume image
 cd $DOCK/data;
@@ -114,7 +118,8 @@ IMAGE_NAME=$CONTAINER_NAME
 cd $DOCK/$CONTAINER_NAME
 
 # Build Symfony standard edition image
-docker build -t $OWNER/$IMAGE_NAME:0.1 .
+build_symfony_standard='docker build -t '$OWNER'/'$IMAGE_NAME':0.1 .'
+`$build_symfony_standard` && echo -e $INFO'Executed "'$build_symfony_standard'"'$BLACK
 
 cd $DOCK
 
@@ -125,13 +130,19 @@ APP_DIR=$WEB_DIR/app
 
 if [ -d $APP_DIR/logs ];
 then
-    # Set logs and cache permissions
+    # Set logs permissions
     chmod go+wx $APP_DIR/logs
 fi
 
 if [ -d $APP_DIR/cache ];
 then
+    # Set cache permissions
     chmod go+wx $APP_DIR/cache
+fi
+
+if [ -d $WEB_DIR/composer ];
+then
+    mkdir $WEB_DIR/composer
 fi
 
 # Run php-nginx container
