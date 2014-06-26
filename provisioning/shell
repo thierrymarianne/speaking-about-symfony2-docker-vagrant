@@ -25,9 +25,13 @@ then
     then
         /bin/bash -c 'curl -L http://install.ohmyz.sh >> /tmp/install-omz'
         chown vagrant /tmp/install-omz
+        # remove change shell command as it asks for vagrant password
+        sed -ibak 's/chsh -s `which zsh`//g' /tmp/install-omz 
+        su vagrant << 'INSTALL_OH_MY_ZSH'
         cd ~vagrant && export ZSH=/home/vagrant/.oh-my-zsh && \
-            sudo -E -u vagrant /bin/bash -c 'source /tmp/install-omz' || \
-            chsh -s /bin/zsh vagrant && \
+            sudo -E -u vagrant /bin/zsh -c 'source /tmp/install-omz'
+INSTALL_OH_MY_ZSH
+        chsh -s /bin/zsh vagrant && \
             touch ~vagrant/oh-my-zsh-installed
     fi
 fi
