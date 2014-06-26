@@ -6,7 +6,7 @@ This repository was created to host some of the resources referred to in the fol
 
 ## Installation
 
-    git clone https://github.com:thierrymarianne/symfony2-docker-vagrant.git
+    git clone https://github.com/thierrymarianne/symfony2-docker-vagrant.git
 
 ## Build and run containers using shell script
 
