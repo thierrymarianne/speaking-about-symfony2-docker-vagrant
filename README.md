@@ -1,4 +1,4 @@
-Very much **deprecated*, for the record only.
+Very much _**DEPRECATED**_ now, for the record only.
 
 # Package a Symfony2 application using Docker
 
