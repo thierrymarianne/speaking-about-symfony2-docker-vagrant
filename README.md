@@ -1,3 +1,5 @@
+Very much **deprecated*, for the record only.
+
 # Package a Symfony2 application using Docker
 
 This repository was created to host some of the resources referred to in the following slideshow
